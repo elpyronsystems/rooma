@@ -61,16 +61,18 @@ async function createListing(req, res, next) {
  */
 async function searchListings(req, res, next) {
   try {
+    // req.query has already been validated and type-coerced by the
+    // searchListingsSchema middleware (e.g. minPrice is a real number, not a string).
     const { type, minPrice, maxPrice, universityId, search } = req.query;
 
     const where = {
       status: "active",
       ...(type ? { type } : {}),
-      ...(minPrice || maxPrice
+      ...(minPrice !== undefined || maxPrice !== undefined
         ? {
             price: {
-              ...(minPrice ? { gte: Number(minPrice) } : {}),
-              ...(maxPrice ? { lte: Number(maxPrice) } : {}),
+              ...(minPrice !== undefined ? { gte: minPrice } : {}),
+              ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
             },
           }
         : {}),

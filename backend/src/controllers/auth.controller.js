@@ -15,10 +15,10 @@ function generateOtp() {
 async function signup(req, res, next) {
   try {
     const { fullName, phoneNumber, email, password, role } = req.body;
-
-    if (!fullName || !phoneNumber || !password) {
-      return res.status(400).json({ error: "fullName, phoneNumber, and password are required" });
-    }
+    // Input shape/format is already guaranteed valid by the signupSchema
+    // Zod validation middleware — no need to re-check presence here.
+    // Note: the schema intentionally excludes "admin" from allowed roles,
+    // so this can never be used to self-assign admin access.
 
     const existing = await prisma.user.findUnique({ where: { phoneNumber } });
     if (existing) {
