@@ -1,0 +1,44 @@
+.contact-us-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08), transparent 50%),
+    linear-gradient(180deg, var(--color-bg-tint) 0%, var(--color-bg) 100%);
+}
+
+.contact-us-container {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.contact-us-status {
+  padding: 4rem 1.5rem;
+  text-align: center;
+  color: var(--color-ink-muted);
+}
+
+.contact-us-status__link {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.contact-us-form {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elegant);
+  padding: 2.5rem;
+  animation: fade-in-up 0.5s var(--ease-elegant) both;
+}
+
+.contact-us-form h1 {
+  font-size: 1.7rem;
+}
+
+.contact-us-success {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: #ecfdf5;
+  border-radius: var(--radius-sm);
+  color: #047857;
+  font-size: 0.88rem;
+}

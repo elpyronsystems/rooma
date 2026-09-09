@@ -1,0 +1,131 @@
+.booking-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.booking-panel__price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.booking-panel__price span {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-ink-muted);
+}
+
+.booking-panel__negotiable {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.booking-panel__field {
+  margin-top: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.booking-panel__field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.booking-panel__field select,
+.booking-panel__field input {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+}
+
+.booking-panel__dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.booking-panel__breakdown {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+.booking-panel__total {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-line);
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--color-ink);
+}
+
+.booking-panel__error {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  background-color: var(--color-error-bg);
+  border-radius: var(--radius-sm);
+  color: var(--color-error);
+  font-size: 0.85rem;
+}
+
+.booking-panel__success {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  background-color: #ecfdf5;
+  border-radius: var(--radius-sm);
+  color: #047857;
+  font-size: 0.85rem;
+}
+
+.booking-panel__submit {
+  margin-top: 1.25rem;
+  width: 100%;
+  padding: 0.85rem;
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.booking-panel__submit:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.booking-panel__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.booking-panel__hint {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+}
+
+.booking-panel__hint--notice {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background-color: var(--color-bg-tint);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
+}

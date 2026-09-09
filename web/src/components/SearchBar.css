@@ -1,0 +1,95 @@
+.search-bar {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elegant);
+  border: 1px solid rgba(15, 30, 61, 0.04);
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-bar__field {
+  flex: 1.4;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.search-bar__field--small {
+  flex: 1;
+  min-width: 130px;
+}
+
+.search-bar__field label {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+  font-weight: 500;
+}
+
+.search-bar__input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  color: var(--color-ink-muted);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-bar__input-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.search-bar__input-wrap input {
+  border: none;
+  outline: none;
+  font-size: 0.88rem;
+  color: var(--color-ink);
+  width: 100%;
+  font-family: var(--font-body);
+  background: transparent;
+}
+
+.search-bar__submit {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  height: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.search-bar__submit:hover {
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+}
+
+.search-bar--compact {
+  box-shadow: none;
+  border-radius: var(--radius);
+}
+
+@media (max-width: 1000px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-bar__submit {
+    width: 100%;
+    justify-content: center;
+  }
+}

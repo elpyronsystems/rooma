@@ -1,0 +1,131 @@
+.auth-form h2 {
+  font-size: 1.7rem;
+  letter-spacing: -0.01em;
+}
+
+.auth-form__intro {
+  margin-top: 0.5rem;
+  color: var(--color-ink-muted);
+}
+
+.auth-form__fields {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.field__hint {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+}
+
+.field input,
+.field select {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+.field input::placeholder {
+  color: #a8b0c0;
+}
+
+.field__error {
+  font-size: 0.8rem;
+  color: var(--color-error);
+}
+
+.form-error {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-error-bg);
+  border: 1px solid rgba(164, 53, 58, 0.25);
+  border-radius: var(--radius-sm);
+  color: var(--color-error);
+  font-size: 0.88rem;
+}
+
+.btn-primary {
+  margin-top: 1.75rem;
+  width: 100%;
+  padding: 0.9rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.38);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.auth-form__switch {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-ink-muted);
+}
+
+.auth-form__switch button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.auth-form__switch button:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+.otp-input {
+  letter-spacing: 0.5em;
+  font-size: 1.4rem;
+  text-align: center;
+}

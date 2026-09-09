@@ -1,0 +1,119 @@
+.my-listings-table {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.my-listing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.1rem 1.5rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  transition: box-shadow 0.2s ease;
+}
+
+.my-listing-row:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.my-listing-row__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-primary);
+}
+
+.my-listing-row__title:hover {
+  text-decoration: underline;
+}
+
+.my-listing-row__meta {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.my-listing-row__side {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.my-listing-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-pill);
+}
+
+.my-listing-status--active {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.my-listing-status--inactive {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.my-listing-status--pending_review {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.my-listing-status--draft,
+.my-listing-status--archived {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.my-listing-row__edit {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.my-listing-row__edit:hover {
+  background-color: var(--color-bg-tint);
+}
+
+.my-listing-row__toggle {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.my-listing-row__toggle:hover:not(:disabled) {
+  border-color: var(--color-ink-muted);
+  color: var(--color-ink);
+}
+
+.my-listing-row__toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .my-listing-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .my-listing-row__side {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

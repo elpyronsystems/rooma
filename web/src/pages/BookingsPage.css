@@ -1,0 +1,131 @@
+.bookings-page {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+}
+
+.bookings-list-page {
+  padding: 2rem 3rem 3.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.bookings-summary {
+  font-size: 0.9rem;
+  color: var(--color-ink-muted);
+  margin-bottom: 1.25rem;
+}
+
+.payments-banner {
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1.1rem;
+  background-color: var(--color-bg-tint);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+}
+
+.bookings-table {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.booking-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+}
+
+.booking-row__title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-primary);
+}
+
+.booking-row__title:hover {
+  text-decoration: underline;
+}
+
+.booking-row__location,
+.booking-row__roomtype,
+.booking-row__dates {
+  margin-top: 0.3rem;
+  font-size: 0.83rem;
+  color: var(--color-ink-muted);
+}
+
+.booking-row__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.booking-row__amount {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--color-ink);
+}
+
+.booking-row__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.booking-row__confirm,
+.booking-row__reject {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.booking-row__confirm {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.booking-row__confirm:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.booking-row__reject {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.booking-row__reject:hover:not(:disabled) {
+  background-color: #fecaca;
+}
+
+.booking-row__confirm:disabled,
+.booking-row__reject:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .bookings-list-page {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .booking-row {
+    flex-direction: column;
+  }
+
+  .booking-row__side {
+    align-items: flex-start;
+    width: 100%;
+  }
+}
