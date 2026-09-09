@@ -18,7 +18,9 @@ const verifyOtpSchema = z.object({
 });
 
 const loginSchema = z.object({
-  phoneNumber: z.string().regex(phoneRegex, "phoneNumber must be a valid 10-digit Ghana number"),
+  // Accepts a phone number, email, or full name — resolved in the
+  // controller since which one it is depends on the value's shape.
+  identifier: z.string().trim().min(1, "Enter your phone number, email, or full name"),
   password: z.string().min(1, "password is required"),
 });
 

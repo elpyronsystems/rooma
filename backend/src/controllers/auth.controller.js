@@ -9,8 +9,10 @@ function generateOtp() {
 
 /**
  * POST /api/auth/signup
- * Creates a user and issues an SMS verification code.
- * NOTE: actual SMS sending via Hubtel is a TODO — see comment below.
+ * Creates a user and issues a verification code.
+ * NOTE: actual SMS sending via Hubtel is a TODO — until it's connected,
+ * codes are retrieved directly from the database (Prisma Studio →
+ * SmsVerification table) by whoever's helping a user get verified.
  */
 async function signup(req, res, next) {
   try {
@@ -97,18 +99,65 @@ async function verifyOtp(req, res, next) {
 /**
  * POST /api/auth/login
  */
+const PHONE_PATTERN = /^0\d{9}$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Resolves a login identifier (phone number, email, or full name) to a
+ * single User row, or null if none/ambiguous. Phone and email are unique
+ * columns, so those always resolve to exactly one user or none. Full name
+ * is NOT unique — if more than one account shares that name, this
+ * deliberately refuses to guess which one, and the caller shows a message
+ * asking the person to log in with phone or email instead.
+ */
+async function resolveLoginUser(identifier) {
+  const trimmed = identifier.trim();
+
+  if (PHONE_PATTERN.test(trimmed)) {
+    return { user: await prisma.user.findUnique({ where: { phoneNumber: trimmed } }), ambiguous: false };
+  }
+
+  if (EMAIL_PATTERN.test(trimmed)) {
+    return { user: await prisma.user.findUnique({ where: { email: trimmed } }), ambiguous: false };
+  }
+
+  // Fall back to a full-name lookup — case-insensitive, since people
+  // don't reliably remember their own capitalization.
+  const matches = await prisma.user.findMany({
+    where: { fullName: { equals: trimmed, mode: "insensitive" } },
+  });
+
+  if (matches.length === 1) {
+    return { user: matches[0], ambiguous: false };
+  }
+  if (matches.length > 1) {
+    return { user: null, ambiguous: true };
+  }
+  return { user: null, ambiguous: false };
+}
+
+/**
+ * POST /api/auth/login
+ */
 async function login(req, res, next) {
   try {
-    const { phoneNumber, password } = req.body;
+    const { identifier, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { phoneNumber } });
+    const { user, ambiguous } = await resolveLoginUser(identifier);
+
+    if (ambiguous) {
+      return res.status(409).json({
+        error: "More than one account shares that name. Please log in with your phone number or email instead.",
+      });
+    }
+
     if (!user) {
-      return res.status(401).json({ error: "Invalid phone number or password" });
+      return res.status(401).json({ error: "Invalid login details" });
     }
 
     const validPassword = await bcrypt.compare(password, user.passwordHash);
     if (!validPassword) {
-      return res.status(401).json({ error: "Invalid phone number or password" });
+      return res.status(401).json({ error: "Invalid login details" });
     }
 
     if (!user.phoneVerified) {

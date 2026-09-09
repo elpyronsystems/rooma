@@ -73,6 +73,15 @@ model User {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
+  // Public contact details shown on a provider's listings, so seekers can
+  // reach out directly. Separate from the login email/phone above, since
+  // a provider may want a different business phone/email/WhatsApp than
+  // the one they log in with.
+  businessName     String?   @map("business_name")
+  contactPhone     String?   @map("contact_phone")
+  contactEmail     String?   @map("contact_email")
+  contactWhatsapp  String?   @map("contact_whatsapp")
+
   listings         Listing[]
   bookings         Booking[]
   savedListings    SavedListing[]
@@ -299,4 +308,20 @@ model Payment {
   createdAt          DateTime        @default(now()) @map("created_at")
 
   @@map("payments")
+}
+
+// Submissions from the public Support & Contact page. No user relation —
+// the form works for anonymous visitors too, matching how a support page
+// normally needs to work even before someone has an account.
+model SupportMessage {
+  id          String   @id @default(uuid())
+  fullName    String   @map("full_name")
+  email       String
+  phoneNumber String?  @map("phone_number")
+  category    String
+  subject     String
+  message     String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("support_messages")
 }

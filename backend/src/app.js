@@ -7,8 +7,11 @@ const authRoutes = require("./routes/auth.routes");
 const listingsRoutes = require("./routes/listings.routes");
 const bookingsRoutes = require("./routes/bookings.routes");
 const mediaRoutes = require("./routes/media.routes");
+const documentsRoutes = require("./routes/documents.routes");
 const ratingsRoutes = require("./routes/ratings.routes");
 const savedListingsRoutes = require("./routes/savedListings.routes");
+const contactRoutes = require("./routes/contact.routes");
+const supportRoutes = require("./routes/support.routes");
 const errorHandler = require("./middleware/errorHandler");
 const buildCorsOptions = require("./config/cors");
 
@@ -30,9 +33,12 @@ app.get("/health", (req, res) => res.json({ status: "ok" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingsRoutes);
 app.use("/api/listings/:listingId/media", mediaRoutes);
+app.use("/api/listings/:listingId/documents", documentsRoutes);
 app.use("/api/listings/:listingId/ratings", ratingsRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/saved-listings", savedListingsRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/support", supportRoutes);
 // TODO: /api/payments — on hold per CEO's instruction
 
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));

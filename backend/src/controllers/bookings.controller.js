@@ -100,6 +100,52 @@ async function createBooking(req, res, next) {
 }
 
 /**
+ * GET /api/bookings/my
+ * Returns the authenticated user's own booking requests (as a seeker),
+ * newest first, with the listing's basic info attached for display.
+ */
+async function getMyBookings(req, res, next) {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { userId: req.user.id },
+      include: {
+        listing: { select: { id: true, title: true, address: true, type: true, currency: true } },
+        roomType: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(bookings);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/bookings/owner
+ * Returns booking requests made against listings the authenticated user
+ * owns — the data an owner's dashboard needs to confirm or reject
+ * incoming requests. Naturally empty for a user who owns no listings.
+ */
+async function getOwnerBookings(req, res, next) {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { listing: { ownerId: req.user.id } },
+      include: {
+        listing: { select: { id: true, title: true, address: true, type: true, currency: true } },
+        roomType: { select: { id: true, name: true } },
+        user: { select: { id: true, fullName: true, phoneNumber: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(bookings);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * PATCH /api/bookings/:id/confirm
  * Only the listing owner (landlord/hotel_manager) or an admin can confirm.
  */
@@ -132,4 +178,45 @@ async function confirmBooking(req, res, next) {
   }
 }
 
-module.exports = { createBooking, confirmBooking, hasConflictingBooking };
+/**
+ * PATCH /api/bookings/:id/reject
+ * Same ownership rule as confirm — only the listing owner or an admin
+ * can reject a pending booking request.
+ */
+async function rejectBooking(req, res, next) {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.id },
+      include: { listing: true },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    const isOwner = booking.listing.ownerId === req.user.id;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: "Only the listing owner can reject this booking" });
+    }
+
+    const updated = await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "rejected" },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  createBooking,
+  confirmBooking,
+  rejectBooking,
+  getMyBookings,
+  getOwnerBookings,
+  hasConflictingBooking,
+};

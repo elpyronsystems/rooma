@@ -44,4 +44,35 @@ const searchListingsSchema = z.object({
   search: z.string().max(200).optional(),
 });
 
-module.exports = { createListingSchema, searchListingsSchema };
+const updateListingSchema = z.object({
+  title: z.string().trim().min(3, "title must be at least 3 characters").max(200).optional(),
+  description: z.string().max(5000).optional(),
+  price: z.number().positive("price must be a positive number").optional(),
+  currency: z.string().length(3).optional(),
+  priceNegotiable: z.boolean().optional(),
+  address: z.string().max(300).optional(),
+  status: z.enum(["draft", "pending_review", "active", "inactive", "archived"]).optional(),
+  hostelDetails: z.object({
+    universityId: z.string().uuid().optional(),
+    roomType: z.string().optional(),
+    capacity: z.number().int().positive().optional(),
+    distanceToCampusKm: z.number().nonnegative().optional(),
+  }).optional(),
+  hotelDetails: z.object({
+    starRating: z.number().int().min(1).max(5).optional(),
+    amenities: z.array(z.string()).optional(),
+  }).optional(),
+  rentalDetails: z.object({
+    bedrooms: z.number().int().nonnegative().optional(),
+    bathrooms: z.number().int().nonnegative().optional(),
+    leaseTerm: z.string().optional(),
+    furnished: z.boolean().optional(),
+  }).optional(),
+  saleDetails: z.object({
+    bedrooms: z.number().int().nonnegative().optional(),
+    bathrooms: z.number().int().nonnegative().optional(),
+    landSizeSqm: z.number().positive().optional(),
+  }).optional(),
+});
+
+module.exports = { createListingSchema, searchListingsSchema, updateListingSchema };

@@ -4,13 +4,10 @@ const { fromBuffer: fileTypeFromBuffer } = require("file-type");
 const s3Client = require("../config/s3");
 const prisma = require("../config/prisma");
 const { ALLOWED_MIME_TYPES } = require("../utils/mediaTypes");
+const { getSignedMediaUrl } = require("../utils/mediaUrls");
 
 function buildS3Key(listingId, detectedExt) {
   return `listings/${listingId}/${randomUUID()}.${detectedExt}`;
-}
-
-function publicUrlFor(key) {
-  return `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
 
 /**
@@ -18,6 +15,11 @@ function publicUrlFor(key) {
  * Accepts one or more files (multipart/form-data, field name "files"),
  * uploads each to S3, and records it against the listing.
  * Only the listing owner or an admin may upload media for a listing.
+ *
+ * The database stores the S3 *key*, not a permanent public URL — the
+ * bucket may not have public access enabled (many company AWS accounts
+ * block this at the org level as a security guardrail), so every read
+ * path signs a temporary URL on demand instead. See utils/mediaUrls.js.
  */
 async function uploadMedia(req, res, next) {
   try {
@@ -71,10 +73,14 @@ async function uploadMedia(req, res, next) {
         data: {
           listingId,
           mediaType,
-          url: publicUrlFor(key),
+          url: key, // stores the raw S3 key — signed into a real URL at read time
         },
       });
 
+      // The immediate response to this upload should still be directly
+      // usable by the frontend, so sign it here even though the DB row
+      // only has the bare key.
+      media.url = await getSignedMediaUrl(key);
       createdMedia.push(media);
     }
 
@@ -103,11 +109,11 @@ async function deleteMedia(req, res, next) {
       return res.status(403).json({ error: "Only the listing owner can remove media from this listing" });
     }
 
-    // Extract the S3 key from the stored URL so we can delete the actual object too.
-    const key = media.url.split(".amazonaws.com/")[1];
-
+    // media.url is now the raw S3 key itself (not a full URL), since we
+    // switched to signed URLs generated on demand rather than storing a
+    // permanent public link.
     await s3Client.send(
-      new DeleteObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: key })
+      new DeleteObjectCommand({ Bucket: process.env.AWS_S3_BUCKET, Key: media.url })
     );
 
     await prisma.listingMedia.delete({ where: { id: mediaId } });

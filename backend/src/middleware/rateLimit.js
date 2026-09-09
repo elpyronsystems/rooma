@@ -31,4 +31,15 @@ const signupLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { otpLimiter, loginLimiter, signupLimiter };
+// The support form is public and unauthenticated, so it's a natural spam
+// target — this limits abuse without blocking a genuine visitor sending
+// a couple of messages.
+const supportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many messages sent. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { otpLimiter, loginLimiter, signupLimiter, supportLimiter };
