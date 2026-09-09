@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 const { signAccessToken, signRefreshToken } = require("../utils/jwt");
 
@@ -51,6 +52,58 @@ async function signup(req, res, next) {
 
     res.status(201).json({
       message: "Signup successful. Enter the SMS code sent to your phone to verify your account.",
+      userId: user.id,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/auth/admin-signup
+ * Same shape as regular signup, but requires a shared access code and
+ * always creates the account with role "admin". Kept as a fully
+ * separate endpoint/schema from the regular signup (rather than an
+ * extra field on it) specifically so admin role assignment is never
+ * reachable through the normal signup path, even by a tampered request
+ * body.
+ *
+ * Note on the access code itself: it's checked here server-side, which
+ * is the real enforcement — but it's also compiled into the public
+ * frontend bundle for the "reveal the admin entry form" step, so it's
+ * not a secret once the site ships. Treat it as a low-friction gate
+ * against casual discovery, not a cryptographic boundary; rotate
+ * ADMIN_ACCESS_CODE periodically and share it only with people who
+ * should be able to self-provision an admin account.
+ */
+async function adminSignup(req, res, next) {
+  try {
+    const { fullName, phoneNumber, email, password, accessCode } = req.body;
+
+    if (accessCode !== process.env.ADMIN_ACCESS_CODE) {
+      return res.status(403).json({ error: "Invalid access code" });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { phoneNumber } });
+    if (existing) {
+      return res.status(409).json({ error: "An account with this phone number already exists" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: { fullName, phoneNumber, email, passwordHash, role: "admin" },
+    });
+
+    const code = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await prisma.smsVerification.create({
+      data: { userId: user.id, code, purpose: "signup", expiresAt },
+    });
+
+    res.status(201).json({
+      message: "Admin account created. Enter the SMS code sent to your phone to verify your account.",
       userId: user.id,
     });
   } catch (err) {
@@ -164,6 +217,10 @@ async function login(req, res, next) {
       return res.status(403).json({ error: "Please verify your phone number before logging in" });
     }
 
+    if (user.isSuspended) {
+      return res.status(403).json({ error: "This account has been suspended. Contact support for help." });
+    }
+
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
@@ -182,4 +239,42 @@ async function login(req, res, next) {
   }
 }
 
-module.exports = { signup, verifyOtp, login };
+/**
+ * POST /api/auth/refresh
+ * Exchanges a still-valid refresh token for a new access token, so the
+ * frontend can silently re-authenticate instead of logging the user out
+ * every time the short-lived access token expires (default 1h).
+ */
+async function refresh(req, res, next) {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: "refreshToken is required" });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    } catch {
+      return res.status(401).json({ error: "Invalid or expired refresh token — please log in again" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: payload.id } });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid or expired refresh token — please log in again" });
+    }
+
+    const accessToken = signAccessToken(user);
+    // Also issue a fresh refresh token — sliding expiration means an
+    // active user is never forced to log in again, while a truly
+    // abandoned session still expires per JWT_REFRESH_EXPIRES_IN.
+    const newRefreshToken = signRefreshToken(user);
+
+    res.json({ accessToken, refreshToken: newRefreshToken });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { signup, adminSignup, verifyOtp, login, refresh };

@@ -1,5 +1,6 @@
 const { Prisma } = require("@prisma/client");
 const prisma = require("../config/prisma");
+const { recordAudit } = require("../utils/audit");
 
 /**
  * Checks whether the requested date range overlaps with any existing
@@ -172,6 +173,14 @@ async function confirmBooking(req, res, next) {
       data: { status: "confirmed", confirmedBy: req.user.id, confirmedAt: new Date() },
     });
 
+    await recordAudit({
+      actorId: req.user.id,
+      action: "booking.confirmed",
+      entityType: "booking",
+      entityId: booking.id,
+      metadata: { listingId: booking.listingId },
+    });
+
     res.json(updated);
   } catch (err) {
     next(err);
@@ -206,6 +215,55 @@ async function rejectBooking(req, res, next) {
       data: { status: "rejected" },
     });
 
+    await recordAudit({
+      actorId: req.user.id,
+      action: "booking.rejected",
+      entityType: "booking",
+      entityId: booking.id,
+      metadata: { listingId: booking.listingId },
+    });
+
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PATCH /api/bookings/:id/cancel
+ * A seeker can cancel their own booking, but only while it's still
+ * pending or confirmed — a rejected/completed/already-cancelled booking
+ * has nothing left to cancel.
+ */
+async function cancelBooking(req, res, next) {
+  try {
+    const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
+
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    if (booking.userId !== req.user.id) {
+      return res.status(403).json({ error: "You can only cancel your own bookings" });
+    }
+
+    if (!["pending", "confirmed"].includes(booking.status)) {
+      return res.status(400).json({ error: `This booking is already ${booking.status} and can't be cancelled` });
+    }
+
+    const updated = await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "cancelled" },
+    });
+
+    await recordAudit({
+      actorId: req.user.id,
+      action: "booking.cancelled",
+      entityType: "booking",
+      entityId: booking.id,
+      metadata: { listingId: booking.listingId },
+    });
+
     res.json(updated);
   } catch (err) {
     next(err);
@@ -216,6 +274,7 @@ module.exports = {
   createBooking,
   confirmBooking,
   rejectBooking,
+  cancelBooking,
   getMyBookings,
   getOwnerBookings,
   hasConflictingBooking,

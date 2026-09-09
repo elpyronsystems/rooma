@@ -69,6 +69,7 @@ model User {
   passwordHash     String    @map("password_hash")
   role             UserRole  @default(seeker)
   phoneVerified    Boolean   @default(false) @map("phone_verified")
+  isSuspended      Boolean   @default(false) @map("is_suspended")
   profilePhotoUrl  String?   @map("profile_photo_url")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
@@ -241,6 +242,7 @@ model ListingMedia {
   mediaType     MediaType @map("media_type")
   url           String
   displayOrder  Int       @default(0) @map("display_order")
+  isCover       Boolean   @default(false) @map("is_cover")
   createdAt     DateTime  @default(now()) @map("created_at")
 
   @@map("listing_media")
@@ -321,7 +323,25 @@ model SupportMessage {
   category    String
   subject     String
   message     String
+  resolved    Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("support_messages")
+}
+
+// Records who did what, for accountability — booking confirmations/
+// rejections, listing edits, and similar actions. Deliberately not a
+// Prisma relation to User (stores the id as a plain string): an audit
+// entry should survive even if the acting user's account is later
+// deleted. Surfaced in the admin panel once that's built.
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String   @map("actor_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
 }

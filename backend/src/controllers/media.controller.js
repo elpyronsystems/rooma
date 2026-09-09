@@ -124,4 +124,91 @@ async function deleteMedia(req, res, next) {
   }
 }
 
-module.exports = { uploadMedia, deleteMedia };
+/**
+ * PATCH /api/listings/:listingId/media/reorder
+ * Body: { orderedIds: [mediaId, mediaId, ...] } — the full set of this
+ * listing's media IDs, in the desired display order. Sets displayOrder
+ * to match array position. Owner or admin only.
+ */
+async function reorderMedia(req, res, next) {
+  try {
+    const { listingId } = req.params;
+    const { orderedIds } = req.body;
+
+    const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+    if (!listing) {
+      return res.status(404).json({ error: "Listing not found" });
+    }
+
+    const isOwner = listing.ownerId === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: "Only the listing owner can reorder media for this listing" });
+    }
+
+    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+      return res.status(400).json({ error: "orderedIds must be a non-empty array of media IDs" });
+    }
+
+    // Verify every id actually belongs to this listing before touching
+    // anything — prevents an owner from reordering another listing's
+    // media by slipping a foreign id into the array.
+    const existing = await prisma.listingMedia.findMany({ where: { listingId } });
+    const existingIds = new Set(existing.map((m) => m.id));
+    const allBelong = orderedIds.every((id) => existingIds.has(id));
+    if (!allBelong) {
+      return res.status(400).json({ error: "orderedIds contains an id that doesn't belong to this listing" });
+    }
+
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.listingMedia.update({ where: { id }, data: { displayOrder: index } })
+      )
+    );
+
+    const updated = await prisma.listingMedia.findMany({
+      where: { listingId },
+      orderBy: { displayOrder: "asc" },
+    });
+
+    await Promise.all(updated.map(async (m) => { m.url = await getSignedMediaUrl(m.url); }));
+
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PATCH /api/listings/:listingId/media/:mediaId/cover
+ * Marks one media item as the cover photo, unsetting any previous cover
+ * for this listing. Owner or admin only.
+ */
+async function setCoverMedia(req, res, next) {
+  try {
+    const { listingId, mediaId } = req.params;
+
+    const media = await prisma.listingMedia.findUnique({ where: { id: mediaId } });
+    if (!media || media.listingId !== listingId) {
+      return res.status(404).json({ error: "Media not found for this listing" });
+    }
+
+    const listing = await prisma.listing.findUnique({ where: { id: listingId } });
+    const isOwner = listing.ownerId === req.user.id;
+    const isAdmin = req.user.role === "admin";
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: "Only the listing owner can set the cover photo for this listing" });
+    }
+
+    await prisma.$transaction([
+      prisma.listingMedia.updateMany({ where: { listingId }, data: { isCover: false } }),
+      prisma.listingMedia.update({ where: { id: mediaId }, data: { isCover: true } }),
+    ]);
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { uploadMedia, deleteMedia, reorderMedia, setCoverMedia };

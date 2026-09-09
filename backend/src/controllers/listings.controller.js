@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const { attachSignedUrlsToListing, attachSignedUrlsToListings } = require("../utils/mediaUrls");
+const { recordAudit } = require("../utils/audit");
 
 // Public contact fields to show on a listing so seekers can reach the
 // provider — excludes passwordHash and anything else sensitive.
@@ -103,7 +104,7 @@ async function searchListings(req, res, next) {
 
     const listings = await prisma.listing.findMany({
       where,
-      include: { media: true, hostelDetails: true, hotelDetails: true, rentalDetails: true, saleDetails: true, owner: OWNER_SELECT },
+      include: { media: { orderBy: [{ isCover: "desc" }, { displayOrder: "asc" }] }, hostelDetails: true, hotelDetails: true, rentalDetails: true, saleDetails: true, owner: OWNER_SELECT },
       orderBy: { createdAt: "desc" },
       take: 50,
     });
@@ -126,7 +127,7 @@ async function getListing(req, res, next) {
     const listing = await prisma.listing.findUnique({
       where: { id: req.params.id },
       include: {
-        media: true,
+        media: { orderBy: [{ isCover: "desc" }, { displayOrder: "asc" }] },
         hostelDetails: true,
         hotelDetails: { include: { listing: false } },
         roomTypes: true,
@@ -159,7 +160,7 @@ async function getMyListings(req, res, next) {
   try {
     const listings = await prisma.listing.findMany({
       where: { ownerId: req.user.id },
-      include: { media: true, hostelDetails: true, hotelDetails: true, rentalDetails: true, saleDetails: true },
+      include: { media: { orderBy: [{ isCover: "desc" }, { displayOrder: "asc" }] }, hostelDetails: true, hotelDetails: true, rentalDetails: true, saleDetails: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -227,10 +228,18 @@ async function updateListing(req, res, next) {
     const updated = await prisma.listing.update({
       where: { id: listing.id },
       data: { ...baseData, ...detailUpdate },
-      include: { media: true, hostelDetails: true, hotelDetails: true, rentalDetails: true, saleDetails: true },
+      include: { media: { orderBy: [{ isCover: "desc" }, { displayOrder: "asc" }] }, hostelDetails: true, hotelDetails: true, rentalDetails: true, saleDetails: true },
     });
 
     await attachSignedUrlsToListing(updated);
+
+    await recordAudit({
+      actorId: req.user.id,
+      action: "listing.updated",
+      entityType: "listing",
+      entityId: listing.id,
+      metadata: { changedFields: Object.keys(baseData), statusChanged: status !== undefined },
+    });
 
     res.json(updated);
   } catch (err) {

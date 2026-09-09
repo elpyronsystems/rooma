@@ -3,6 +3,7 @@ const {
   createBooking,
   confirmBooking,
   rejectBooking,
+  cancelBooking,
   getMyBookings,
   getOwnerBookings,
 } = require("../controllers/bookings.controller");
@@ -20,5 +21,6 @@ router.get("/owner", requireAuth, getOwnerBookings);
 router.post("/", requireAuth, requireRole("seeker", "admin"), validate(createBookingSchema), createBooking);
 router.patch("/:id/confirm", requireAuth, confirmBooking);
 router.patch("/:id/reject", requireAuth, rejectBooking);
+router.patch("/:id/cancel", requireAuth, cancelBooking);
 
 module.exports = router;

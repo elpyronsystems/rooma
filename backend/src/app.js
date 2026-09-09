@@ -12,6 +12,7 @@ const ratingsRoutes = require("./routes/ratings.routes");
 const savedListingsRoutes = require("./routes/savedListings.routes");
 const contactRoutes = require("./routes/contact.routes");
 const supportRoutes = require("./routes/support.routes");
+const adminRoutes = require("./routes/admin.routes");
 const errorHandler = require("./middleware/errorHandler");
 const buildCorsOptions = require("./config/cors");
 
@@ -39,6 +40,7 @@ app.use("/api/bookings", bookingsRoutes);
 app.use("/api/saved-listings", savedListingsRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/support", supportRoutes);
+app.use("/api/admin", adminRoutes);
 // TODO: /api/payments — on hold per CEO's instruction
 
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
