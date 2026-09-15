@@ -1,11 +1,11 @@
-export type UserRole = "seeker" | "landlord" | "agent" | "hotel_manager";
+export type UserRole = "seeker" | "landlord" | "agent" | "hotel_manager" | "admin";
 
 export interface User {
   id: string;
   fullName: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   email?: string;
-  role: UserRole | "admin";
+  role: UserRole;
 }
 
 export interface ApiIssue {
@@ -17,6 +17,8 @@ export interface ListingMedia {
   id: string;
   mediaType: "image" | "video";
   url: string;
+  displayOrder?: number;
+  isCover?: boolean;
 }
 
 export interface HotelDetails {
@@ -55,7 +57,7 @@ export interface RoomType {
 export interface OwnerContact {
   id: string;
   fullName: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   email?: string;
   businessName?: string;
   contactPhone?: string;
@@ -105,5 +107,5 @@ export interface Booking {
   createdAt?: string;
   listing?: { id: string; title: string; address?: string; type: string; currency: string };
   roomType?: { id: string; name: string };
-  user?: { id: string; fullName: string; phoneNumber: string };
+  user?: { id: string; fullName: string; phoneNumber?: string };
 }

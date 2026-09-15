@@ -23,6 +23,17 @@ export async function signup(params: {
   return response.userId;
 }
 
+export async function adminSignup(params: {
+  fullName: string;
+  phoneNumber: string;
+  password: string;
+  email?: string;
+  accessCode: string;
+}): Promise<string> {
+  const response = await apiClient.post<SignupResponse>("/auth/admin-signup", params, false);
+  return response.userId;
+}
+
 export async function verifyOtp(userId: string, code: string): Promise<void> {
   await apiClient.post("/auth/verify-otp", { userId, code }, false);
 }
@@ -33,6 +44,12 @@ export async function login(identifier: string, password: string): Promise<User>
     { identifier, password },
     false
   );
+  saveTokens(response.accessToken, response.refreshToken);
+  return response.user;
+}
+
+export async function oauthLogin(provider: "google" | "microsoft", idToken: string): Promise<User> {
+  const response = await apiClient.post<LoginResponse>("/auth/oauth", { provider, idToken }, false);
   saveTokens(response.accessToken, response.refreshToken);
   return response.user;
 }

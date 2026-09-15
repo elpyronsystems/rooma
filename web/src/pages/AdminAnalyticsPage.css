@@ -1,0 +1,130 @@
+.analytics-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-summary-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.analytics-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elegant);
+}
+
+.analytics-summary-card__value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.analytics-summary-card__label {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.analytics-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-minichart {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.analytics-minichart__bars {
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 100px;
+}
+
+.analytics-minichart__bar {
+  flex: 1;
+  min-height: 2px;
+  background-color: var(--color-primary);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.75;
+}
+
+.analytics-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.analytics-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.analytics-card__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.analytics-barlist {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.analytics-barlist__row {
+  display: grid;
+  grid-template-columns: 100px 1fr 32px;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.analytics-barlist__label {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+  text-transform: capitalize;
+}
+
+.analytics-barlist__track {
+  height: 8px;
+  background-color: var(--color-bg-tint);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.analytics-barlist__fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 4px;
+}
+
+.analytics-barlist__count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .analytics-summary-grid,
+  .analytics-charts-row,
+  .analytics-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

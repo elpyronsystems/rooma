@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import { BookingStatusBadge } from "../components/BookingStatusBadge";
 import { useAuth } from "../context/AuthContext";
-import { getMyBookings } from "../api/bookings";
+import { getMyBookings, cancelBooking } from "../api/bookings";
+import { ApiError } from "../api/apiError";
 import type { Booking } from "../api/types";
 import "./CategoryListingsPage.css";
 import "./BookingsPage.css";
@@ -18,6 +19,8 @@ export function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -41,6 +44,21 @@ export function MyBookingsPage() {
       cancelled = true;
     };
   }, [user]);
+
+  async function handleCancel(bookingId: string) {
+    if (!window.confirm("Cancel this booking? This can't be undone.")) return;
+
+    setCancelError(null);
+    setCancellingId(bookingId);
+    try {
+      const updated = await cancelBooking(bookingId);
+      setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status: updated.status } : b)));
+    } catch (err) {
+      setCancelError(err instanceof ApiError ? err.message : "Couldn't cancel this booking.");
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   return (
     <div className="bookings-page">
@@ -79,6 +97,8 @@ export function MyBookingsPage() {
           </p>
         )}
 
+        {cancelError && <p className="category-status category-status--error">{cancelError}</p>}
+
         {user && !isLoading && !loadError && bookings.length > 0 && (
           <div className="bookings-table">
             {bookings.map((b) => (
@@ -100,6 +120,16 @@ export function MyBookingsPage() {
                   <p className="booking-row__amount">
                     {b.currency} {parseFloat(b.totalAmount).toLocaleString()}
                   </p>
+                  {(b.status === "pending" || b.status === "confirmed") && (
+                    <button
+                      type="button"
+                      className="booking-row__cancel"
+                      disabled={cancellingId === b.id}
+                      onClick={() => handleCancel(b.id)}
+                    >
+                      {cancellingId === b.id ? "Cancelling…" : "Cancel"}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

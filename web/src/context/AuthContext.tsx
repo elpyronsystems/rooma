@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import type { User } from "../api/types";
 import * as authApi from "../api/auth";
 
 interface AuthContextValue {
   user: User | null;
   login: (identifier: string, password: string) => Promise<User>;
+  loginWithOAuth: (provider: "google" | "microsoft", idToken: string) => Promise<User>;
   logout: () => void;
 }
 
@@ -19,12 +20,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loggedInUser;
   }, []);
 
+  const loginWithOAuth = useCallback(async (provider: "google" | "microsoft", idToken: string) => {
+    const loggedInUser = await authApi.oauthLogin(provider, idToken);
+    setUser(loggedInUser);
+    return loggedInUser;
+  }, []);
+
   const logout = useCallback(() => {
     authApi.logout();
     setUser(null);
   }, []);
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  // Fired by the API client when a silent token refresh fails (refresh
+  // token itself expired/invalid) — reflects the now-logged-out state in
+  // the UI without needing every page to handle this individually.
+  useEffect(() => {
+    function handleAuthExpired() {
+      setUser(null);
+    }
+    window.addEventListener("rooma:auth-expired", handleAuthExpired);
+    return () => window.removeEventListener("rooma:auth-expired", handleAuthExpired);
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, login, loginWithOAuth, logout }}>{children}</AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

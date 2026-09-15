@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getListing, updateListing } from "../api/listings";
 import { ApiError } from "../api/apiError";
 import type { Listing } from "../api/types";
+import { PhotoManager } from "../components/PhotoManager";
 import "../pages/AuthForms.css";
 import "./CreateListingPage.css";
 
@@ -222,6 +223,18 @@ export function EditListingPage() {
     <div className="create-listing-page">
       <Navbar />
       <div className="create-listing-container">
+        <div className="create-listing-form" style={{ marginBottom: "1.5rem" }}>
+          <h1>Photos</h1>
+          <p className="create-listing-form__intro">Drag to reorder, click the star to set the cover photo.</p>
+          <div style={{ marginTop: "1.25rem" }}>
+            <PhotoManager
+              listingId={listing.id}
+              media={listing.media}
+              onChange={(media) => setListing((prev) => (prev ? { ...prev, media } : prev))}
+            />
+          </div>
+        </div>
+
         <form className="create-listing-form" onSubmit={handleSubmit}>
           <h1>Edit Listing</h1>
           <p className="create-listing-form__intro">

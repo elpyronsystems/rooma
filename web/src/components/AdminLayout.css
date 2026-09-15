@@ -1,0 +1,132 @@
+.admin-layout {
+  min-height: 100vh;
+  background-color: var(--color-bg-tint);
+}
+
+/* Hero — the branded welcome banner, big on desktop, compact on mobile */
+.admin-layout__hero {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: 3rem 1.5rem 2.5rem;
+  background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-deep) 55%, var(--color-navy) 100%);
+  color: #fff;
+}
+
+.admin-layout__hero-glow {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.35), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.admin-layout__hero-logo {
+  position: relative;
+  height: 40px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.admin-layout__hero-title {
+  position: relative;
+  margin-top: 1.25rem;
+  font-size: 1.5rem;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.admin-layout__hero-subtitle {
+  position: relative;
+  margin-top: 0.5rem;
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.admin-layout__header {
+  padding: 0 3rem;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.admin-layout__tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1.1rem 0;
+}
+
+.admin-layout__tab {
+  padding: 0.7rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  border-radius: var(--radius-pill);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-layout__tab:hover {
+  color: var(--color-primary);
+  background-color: var(--color-bg-tint);
+}
+
+.admin-layout__tab--active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.28);
+}
+
+.admin-layout__body {
+  padding: 2rem 3rem 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-layout__hero {
+    padding: 4rem 2rem 3.25rem;
+  }
+
+  .admin-layout__hero-logo {
+    height: 56px;
+  }
+
+  .admin-layout__hero-title {
+    font-size: 2rem;
+    margin-top: 1.5rem;
+  }
+
+  .admin-layout__hero-subtitle {
+    font-size: 1.02rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-layout__hero {
+    padding: 2.25rem 1.25rem 1.75rem;
+  }
+
+  .admin-layout__hero-logo {
+    height: 32px;
+  }
+
+  .admin-layout__hero-title {
+    font-size: 1.2rem;
+  }
+
+  .admin-layout__hero-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .admin-layout__header,
+  .admin-layout__body {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .admin-layout__tabs {
+    overflow-x: auto;
+  }
+}

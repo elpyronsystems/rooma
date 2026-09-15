@@ -1,0 +1,65 @@
+.oauth-buttons {
+  margin-top: 1.5rem;
+}
+
+.oauth-buttons__divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+.oauth-buttons__divider::before,
+.oauth-buttons__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-line);
+}
+
+.oauth-buttons__divider span {
+  font-size: 0.78rem;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+.oauth-buttons__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.oauth-buttons__google {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.oauth-buttons__microsoft {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oauth-buttons__microsoft:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.oauth-buttons__microsoft:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

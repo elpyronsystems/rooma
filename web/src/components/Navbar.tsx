@@ -132,6 +132,14 @@ export function Navbar() {
                       <button type="button" onClick={() => goTo("/owner/contact")}>
                         Contact Us
                       </button>
+                      <button type="button" onClick={() => goTo("/owner/payout-settings")}>
+                        Payout Settings
+                      </button>
+                      {user.role === "admin" && (
+                        <button type="button" onClick={() => goTo("/admin")}>
+                          Admin Panel
+                        </button>
+                      )}
                     </>
                   ) : (
                     <button type="button" onClick={() => goTo("/payments")}>

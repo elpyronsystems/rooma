@@ -19,9 +19,44 @@ export function getAccessToken(): string | null {
   return localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
 export function clearTokens() {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+// If several requests hit a 401 around the same time (e.g. a page that
+// fires multiple API calls on mount), they should all wait on a single
+// in-flight refresh rather than each independently hitting /auth/refresh.
+let refreshPromise: Promise<boolean> | null = null;
+
+async function attemptRefresh(): Promise<boolean> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    })
+      .then(async (res) => {
+        if (!res.ok) return false;
+        const data = await res.json().catch(() => null);
+        if (!data?.accessToken || !data?.refreshToken) return false;
+        saveTokens(data.accessToken, data.refreshToken);
+        return true;
+      })
+      .catch(() => false)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
 }
 
 interface RequestOptions {
@@ -33,20 +68,33 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, withAuth = true } = options;
 
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-
-  if (withAuth) {
-    const token = getAccessToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+  async function doFetch(): Promise<Response> {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (withAuth) {
+      const token = getAccessToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
     }
+    return fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let response = await doFetch();
+
+  // A 401 on an authenticated request usually means the access token
+  // expired — try a silent refresh once and replay the request, rather
+  // than immediately forcing the user back to the login page.
+  if (response.status === 401 && withAuth && getRefreshToken()) {
+    const refreshed = await attemptRefresh();
+    if (refreshed) {
+      response = await doFetch();
+    } else {
+      clearTokens();
+      window.dispatchEvent(new Event("rooma:auth-expired"));
+    }
+  }
 
   const contentType = response.headers.get("content-type") ?? "";
   const isJson = contentType.includes("application/json");

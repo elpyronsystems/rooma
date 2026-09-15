@@ -29,3 +29,7 @@ export async function confirmBooking(bookingId: string): Promise<Booking> {
 export async function rejectBooking(bookingId: string): Promise<Booking> {
   return apiClient.patch<Booking>(`/bookings/${bookingId}/reject`);
 }
+
+export async function cancelBooking(bookingId: string): Promise<Booking> {
+  return apiClient.patch<Booking>(`/bookings/${bookingId}/cancel`);
+}

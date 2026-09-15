@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { PasswordField } from "../components/PasswordField";
+import { OAuthButtons } from "../components/OAuthButtons";
 import { signup } from "../api/auth";
 import { ApiError } from "../api/apiError";
 import type { UserRole } from "../api/types";
@@ -140,6 +141,8 @@ export function SignupPage() {
         <p className="auth-form__switch">
           Already have an account? <Link to="/login">Log in</Link>
         </p>
+
+        <OAuthButtons />
       </form>
     </AuthLayout>
   );

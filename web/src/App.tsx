@@ -20,9 +20,17 @@ import { MyListingsPage } from "./pages/MyListingsPage";
 import { EditListingPage } from "./pages/EditListingPage";
 import { PaymentsPage } from "./pages/PaymentsPage";
 import { OwnerPaymentsPage } from "./pages/OwnerPaymentsPage";
+import { OwnerPayoutSettingsPage } from "./pages/OwnerPayoutSettingsPage";
+import { AdminPayoutSettingsPage } from "./pages/AdminPayoutSettingsPage";
 import { ContactUsPage } from "./pages/ContactUsPage";
 import { SupportPage } from "./pages/SupportPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { AdminUsersPage } from "./pages/AdminUsersPage";
+import { AdminListingsPage } from "./pages/AdminListingsPage";
+import { AdminSupportPage } from "./pages/AdminSupportPage";
+import { AdminAccessPage } from "./pages/AdminAccessPage";
+import { AdminDocumentsPage } from "./pages/AdminDocumentsPage";
+import { AdminAnalyticsPage } from "./pages/AdminAnalyticsPage";
 
 export function App() {
   return (
@@ -49,9 +57,18 @@ export function App() {
           <Route path="/listings/:id/edit" element={<EditListingPage />} />
           <Route path="/payments" element={<PaymentsPage />} />
           <Route path="/owner/payments" element={<OwnerPaymentsPage />} />
+          <Route path="/owner/payout-settings" element={<OwnerPayoutSettingsPage />} />
+          <Route path="/admin/payout-settings" element={<AdminPayoutSettingsPage />} />
           <Route path="/owner/contact" element={<ContactUsPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/listings" element={<AdminListingsPage />} />
+          <Route path="/admin/support" element={<AdminSupportPage />} />
+          <Route path="/admin" element={<AdminUsersPage />} />
+          <Route path="/admin-access" element={<AdminAccessPage />} />
+          <Route path="/admin/documents" element={<AdminDocumentsPage />} />
+          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

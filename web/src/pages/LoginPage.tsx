@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { AuthLayout } from "../components/AuthLayout";
 import { PasswordField } from "../components/PasswordField";
+import { OAuthButtons } from "../components/OAuthButtons";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/apiError";
 import "./AuthForms.css";
@@ -71,6 +72,8 @@ export function LoginPage() {
         <p className="auth-form__switch">
           Don't have an account? <Link to="/signup">Sign up</Link>
         </p>
+
+        <OAuthButtons redirectTo={redirectTo} />
       </form>
     </AuthLayout>
   );
