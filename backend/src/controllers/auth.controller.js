@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 const { signAccessToken, signRefreshToken } = require("../utils/jwt");
+const { verifyOAuthIdToken } = require("../utils/oauth");
 
 // Generates a 6-digit numeric code for SMS MFA.
 function generateOtp() {
@@ -208,6 +209,14 @@ async function login(req, res, next) {
       return res.status(401).json({ error: "Invalid login details" });
     }
 
+    if (!user.passwordHash) {
+      // An OAuth-only account (Google/Microsoft) has no password of its
+      // own — it can only be signed into through that provider again.
+      return res.status(401).json({
+        error: "This account signs in with Google or Microsoft — use that option instead of a password.",
+      });
+    }
+
     const validPassword = await bcrypt.compare(password, user.passwordHash);
     if (!validPassword) {
       return res.status(401).json({ error: "Invalid login details" });
@@ -277,4 +286,97 @@ async function refresh(req, res, next) {
   }
 }
 
-module.exports = { signup, adminSignup, verifyOtp, login, refresh };
+/**
+ * POST /api/auth/oauth
+ * Body: { provider: "google" | "microsoft", idToken }
+ * Signs in with a verified Google or Microsoft identity. The provider's
+ * own identity verification stands in for our usual phone-OTP step —
+ * an email a provider has already confirmed the user owns doesn't need
+ * a second verification round on top of that.
+ *
+ * Account matching, in order: 1) an existing account already linked to
+ * this exact provider+subject, 2) an existing phone+password account
+ * with the same email (gets linked to this OAuth identity going
+ * forward), 3) otherwise a brand new account is created.
+ */
+async function oauthLogin(req, res, next) {
+  try {
+    const { provider, idToken } = req.body;
+
+    if (!["google", "microsoft"].includes(provider)) {
+      return res.status(400).json({ error: "provider must be 'google' or 'microsoft'" });
+    }
+    if (!idToken) {
+      return res.status(400).json({ error: "idToken is required" });
+    }
+
+    let payload;
+    try {
+      payload = await verifyOAuthIdToken(provider, idToken);
+    } catch (err) {
+      return res.status(401).json({ error: `Could not verify sign-in with ${provider}` });
+    }
+
+    const email = payload.email;
+    const subject = payload.sub;
+    const name = payload.name || (email ? email.split("@")[0] : "Rooma User");
+    // Google always includes email_verified; Microsoft's personal/org
+    // accounts don't consistently send this claim, so its absence isn't
+    // treated as a failure — only an explicit `false` is.
+    const emailVerified = payload.email_verified !== false;
+
+    if (!email) {
+      return res.status(400).json({ error: "This account has no email address to sign in with" });
+    }
+    if (!emailVerified) {
+      return res.status(403).json({ error: "Your email isn't verified with this provider yet" });
+    }
+
+    let user = await prisma.user.findFirst({ where: { oauthProvider: provider, oauthSubject: subject } });
+
+    if (!user) {
+      const existingByEmail = await prisma.user.findUnique({ where: { email } });
+      if (existingByEmail) {
+        user = await prisma.user.update({
+          where: { id: existingByEmail.id },
+          data: { oauthProvider: provider, oauthSubject: subject },
+        });
+      }
+    }
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          fullName: name,
+          email,
+          role: "seeker",
+          phoneVerified: true,
+          oauthProvider: provider,
+          oauthSubject: subject,
+        },
+      });
+    }
+
+    if (user.isSuspended) {
+      return res.status(403).json({ error: "This account has been suspended. Contact support for help." });
+    }
+
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
+
+    res.json({
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        role: user.role,
+        phoneNumber: user.phoneNumber,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { signup, adminSignup, verifyOtp, login, refresh, oauthLogin };

@@ -65,14 +65,29 @@ model User {
   id               String    @id @default(uuid())
   fullName         String    @map("full_name")
   email            String?   @unique
-  phoneNumber      String    @unique @map("phone_number")
-  passwordHash     String    @map("password_hash")
+  // Optional now — OAuth-only accounts (Google/Microsoft) never collect
+  // a phone number. Regular phone+password signup still requires one at
+  // the application/validation layer; the schema itself just no longer
+  // enforces it, since it can't be required for every account type.
+  phoneNumber      String?   @unique @map("phone_number")
+  // Optional for the same reason — an OAuth-only account has no
+  // password of its own to check, so login for that account can only
+  // ever go through the OAuth flow again, not password login.
+  passwordHash     String?   @map("password_hash")
   role             UserRole  @default(seeker)
   phoneVerified    Boolean   @default(false) @map("phone_verified")
   isSuspended      Boolean   @default(false) @map("is_suspended")
   profilePhotoUrl  String?   @map("profile_photo_url")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Set when the account was created (or linked) via Google/Microsoft
+  // sign-in. oauthSubject is the provider's own stable user id ("sub"
+  // claim) — used together with oauthProvider as the real lookup key,
+  // since a provider's subject id never changes even if the person
+  // later changes their email with that provider.
+  oauthProvider    String?   @map("oauth_provider")
+  oauthSubject     String?   @map("oauth_subject")
 
   // Public contact details shown on a provider's listings, so seekers can
   // reach out directly. Separate from the login email/phone above, since
@@ -83,12 +98,22 @@ model User {
   contactEmail     String?   @map("contact_email")
   contactWhatsapp  String?   @map("contact_whatsapp")
 
+  // Where this owner's 95% share of a booking payment gets sent.
+  // Exactly one of the momo number or bank details applies, depending
+  // on payoutMethod.
+  payoutMethod            String? @map("payout_method") // mtn_momo | telecel_cash | bank
+  payoutMomoNumber        String? @map("payout_momo_number")
+  payoutBankName          String? @map("payout_bank_name")
+  payoutBankAccountNumber String? @map("payout_bank_account_number")
+  payoutBankAccountName   String? @map("payout_bank_account_name")
+
   listings         Listing[]
   bookings         Booking[]
   savedListings    SavedListing[]
   ratings          Rating[]
   smsVerifications SmsVerification[]
 
+  @@unique([oauthProvider, oauthSubject])
   @@map("users")
 }
 
@@ -301,15 +326,47 @@ model Payment {
   bookingId          String          @map("booking_id")
   booking            Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   amount             Decimal         @db.Decimal(12, 2)
+  // Rooma's cut, computed and stored at creation time — kept as a
+  // snapshot rather than recalculated later, so a change to the
+  // platform's commission rate down the line never rewrites the
+  // history of what was actually charged on a past payment.
+  platformFeeAmount  Decimal         @map("platform_fee_amount") @db.Decimal(12, 2)
+  platformFeePercent Decimal         @map("platform_fee_percent") @db.Decimal(5, 2)
+  // What's left for the listing owner after Rooma's cut.
+  netAmount          Decimal         @map("net_amount") @db.Decimal(12, 2)
   currency           String          @default("GHS")
   provider           PaymentProvider
   status             PaymentStatus   @default(pending)
-  providerReference  String?         @map("provider_reference")
+  providerReference  String?         @unique @map("provider_reference")
   receiptUrl         String?         @map("receipt_url")
   paidAt             DateTime?       @map("paid_at")
   createdAt          DateTime        @default(now()) @map("created_at")
 
+  // The payout-to-owner leg is a separate operation from collecting the
+  // seeker's payment — it can only happen after collection succeeds,
+  // and with mobile money it's genuinely a second transaction with its
+  // own reference and its own success/failure outcome.
+  disbursementStatus    PaymentStatus? @map("disbursement_status")
+  disbursementReference String?        @map("disbursement_reference")
+  disbursedAt           DateTime?      @map("disbursed_at")
+
+  @@index([bookingId])
   @@map("payments")
+}
+
+// A single row (id is always "singleton") holding where Rooma's own 5%
+// commission gets sent. Same shape as a user's payout fields, since the
+// underlying mechanics (MoMo number or bank account) are identical.
+model PlatformPayoutSettings {
+  id                      String   @id @default("singleton")
+  payoutMethod            String?  @map("payout_method")
+  payoutMomoNumber        String?  @map("payout_momo_number")
+  payoutBankName          String?  @map("payout_bank_name")
+  payoutBankAccountNumber String?  @map("payout_bank_account_number")
+  payoutBankAccountName   String?  @map("payout_bank_account_name")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("platform_payout_settings")
 }
 
 // Submissions from the public Support & Contact page. No user relation —

@@ -7,9 +7,11 @@ const {
   getMyBookings,
   getOwnerBookings,
 } = require("../controllers/bookings.controller");
+const { initiatePayment, getBookingPayment } = require("../controllers/payments.controller");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const validate = require("../middleware/validate");
 const { createBookingSchema } = require("../validators/bookings.validators");
+const { initiatePaymentSchema } = require("../validators/payments.validators");
 
 const router = express.Router();
 
@@ -22,5 +24,7 @@ router.post("/", requireAuth, requireRole("seeker", "admin"), validate(createBoo
 router.patch("/:id/confirm", requireAuth, confirmBooking);
 router.patch("/:id/reject", requireAuth, rejectBooking);
 router.patch("/:id/cancel", requireAuth, cancelBooking);
+router.post("/:id/payments", requireAuth, validate(initiatePaymentSchema), initiatePayment);
+router.get("/:id/payment", requireAuth, getBookingPayment);
 
 module.exports = router;

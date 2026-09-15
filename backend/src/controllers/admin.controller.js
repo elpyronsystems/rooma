@@ -289,9 +289,62 @@ async function getAnalytics(req, res, next) {
   }
 }
 
+/**
+ * DELETE /api/admin/users/:id
+ * Deletes a user outright — meant for genuinely abandoned/unused
+ * accounts, not as a substitute for suspension. If the account has any
+ * listings, bookings, saved listings, or ratings attached, the delete is
+ * blocked with a clear message rather than silently cascading and
+ * wiping out data other people may still care about (e.g. someone
+ * else's confirmed booking against that user's listing).
+ */
+async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    if (id === req.user.id) {
+      return res.status(400).json({ error: "You can't delete your own account through this panel" });
+    }
+
+    const target = await prisma.user.findUnique({ where: { id } });
+    if (!target) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const [listingCount, bookingCount, savedCount, ratingCount] = await Promise.all([
+      prisma.listing.count({ where: { ownerId: id } }),
+      prisma.booking.count({ where: { userId: id } }),
+      prisma.savedListing.count({ where: { userId: id } }),
+      prisma.rating.count({ where: { userId: id } }),
+    ]);
+
+    if (listingCount > 0 || bookingCount > 0 || savedCount > 0 || ratingCount > 0) {
+      return res.status(409).json({
+        error:
+          "This account has listings, bookings, saved listings, or reviews attached, so it can't be deleted directly. Suspend it instead, or remove the related records first.",
+      });
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    await recordAudit({
+      actorId: req.user.id,
+      action: "user.deleted",
+      entityType: "user",
+      entityId: id,
+      metadata: { fullName: target.fullName, phoneNumber: target.phoneNumber },
+    });
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getUsers,
   updateUser,
+  deleteUser,
   getAdminListings,
   getSupportMessages,
   updateSupportMessage,

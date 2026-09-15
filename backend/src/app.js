@@ -13,6 +13,8 @@ const savedListingsRoutes = require("./routes/savedListings.routes");
 const contactRoutes = require("./routes/contact.routes");
 const supportRoutes = require("./routes/support.routes");
 const adminRoutes = require("./routes/admin.routes");
+const paymentsRoutes = require("./routes/payments.routes");
+const payoutRoutes = require("./routes/payout.routes");
 const errorHandler = require("./middleware/errorHandler");
 const buildCorsOptions = require("./config/cors");
 
@@ -41,7 +43,8 @@ app.use("/api/saved-listings", savedListingsRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/admin", adminRoutes);
-// TODO: /api/payments — on hold per CEO's instruction
+app.use("/api/payments", paymentsRoutes);
+app.use("/api/payout", payoutRoutes);
 
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 app.use(errorHandler);
