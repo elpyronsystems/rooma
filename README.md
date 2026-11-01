@@ -1,8 +1,8 @@
-# rooma
+# ROOMA by eLPi
 
 ## EXECUTIVE SUMMARY 
 Rooma is a high-performance, cross-platform accommodation ecosystem 
-designed to bridge the gap between seekers and providers in the real estate and 
+designed by eLPi.dev to bridge the gap between seekers and providers in the real estate and 
 hospitality sectors. Developed by eLPi.dev, Rooma centralizes the discovery, 
 booking and management of diverse housing needs – ranging from student 
 hostels and short stay hotels to long-term residential rentals and property sales. 
